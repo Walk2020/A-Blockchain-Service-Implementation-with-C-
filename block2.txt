@@ -1,0 +1,7 @@
+2 Rishil Alice 30
+8 Rishil Chinmay 10
+3 Oliver Rachit 94
+
+10 Ali Alice 20
+
+11 Ali Alice 100

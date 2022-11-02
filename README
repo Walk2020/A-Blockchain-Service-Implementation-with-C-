@@ -1,0 +1,173 @@
+EE450 final project
+
+Part 1 - Personal information
+
+    Name: Yang Zhang
+    Student ID: 6155123128
+
+
+Part2 - What I have done in the project.
+
+    In this project, I have implemented two client program which are clientA.cpp and clientB.cpp,
+    one main server program which is serverM.cpp, and three backend server programs which are 
+    sercerA.cpp, serverB.cpp, and serverC.cpp.
+
+    The two cilents uses TCP commucate with the main server over different port number 
+    and their functionality is the same. They can send request to check balance for a 
+    certain user, transfer ali coins from one user to another one, and get the full 
+    transaction list in increasing order of tansaction number. As for the fucntion of 
+    getting the statistical result of one user, I have not implemented this function yet, 
+    but the clinet can recognize the command "<username> stats" and get a feedback that 
+    "this function has not been implmented yet. And all the required functions are implemented
+    in my project.
+
+    The mian server is used to do all calculations based on the  information got from backend
+    servers, including generate the new transaction number, calculate balance for user, check 
+    if users are in the network, decide if write new transaction records into the data base, and
+    send feedback to the client which made the request. In order to generate new transaction number,
+    ervery backend servers will send the number of records in its data base to main server. And main
+    server will generate the new transaction number by summing these numbers and plusing one to the result.
+
+    The backend servers will provide all information requested by the main server and wirte new records into 
+    its data base. Before each new record is written, the backend server will first insert '\n' to ensure
+    that the new record is not on the same line as the last record in database. This operation will not
+    affect the subsequent reading of records.
+
+
+Part3 - Code files
+
+    clientA.cpp
+        --initialize information such as IP address and port nnumber for clientA
+        --create TCP socket for clientA
+        --connect with the main server
+        --recognize input command from termial and send corresponding requst message to main server
+        --receive response from main server and show corresponding message on terminal
+
+    clientB.cpp
+        --initialize information such as IP address and port nnumber for clientB
+        --create TCP socket for clientA
+        --connect with the main server
+        --recognize input command from termial and send corresponding requst message to main server
+        --receive response from main server and show corresponding message on terminal
+
+    serverM.cpp
+        --initialize information such as IP address and port number for clientA, clientB, serverM, serverA,
+          serverB, and serverC
+        --create parent TCP sockets for clientA and clientB, listen them, accept them, and exchange information 
+          with them.
+        --create UDP socket to exchange information with serverA, serverB, and serverC
+        --caclulate balance for users from clients based on the transaction records receiving from the three
+          backend servers
+        --check if the transaction request from clients is possible and return clients corresponding feedback
+        --get new transaction number and generate new transaction records if the transsaction can be achieved
+        --choose a backend server randomly to wirte the new transaction record intto the corresponding data base.
+        --generate alichain.txt to storing the whole tasaction records
+
+    serverA.cpp
+        --initialize information such as IP address and port number for main server and serverA.
+        --create UDP socket to commnicate with main server
+        --recognize command sent by main server and read the records in block1.txt or write new 
+          record into block1.txt
+
+    serverB.cpp
+        --initialize information such as IP address and port number for main server and serverB.
+        --create UDP socket to commnicate with main server
+        --recognize command sent by main server and read the records in block2.txt or write new 
+          record into block2.txt
+
+    serverC.cpp
+        --initialize information such as IP address and port number for main server and serverC.
+        --create UDP socket to commnicate with main server
+        --recognize command sent by main server and read the records in block3.txt or write new 
+          record into block3.txt
+
+
+
+Part4 - The format of all the message exchanged
+
+    All command and feedback between these programs are integrated as one string. And once the string
+    is received in one program, the string will be splitted using a function called split_c_string() 
+    using the delimiter sprcified by the program.
+
+    Different parts in the command are separated by semicolon or space as shown below.
+
+    clientA
+      the following commands are sent by clientA to serverM
+        --request a transaction list: TXLIST
+        --request a balance enquiry of one user: <user_name>
+        --request for a transaction of XXX number of ali coins  from user1 to user2: <user1_name> <user2_name> XXX
+        --request a statistic result of one user: <user_name> stats
+          (this function of statistic result is not implemented, the program can only recognize this command.)
+
+    clientB
+      the following commands are sent by clientB to serverM
+        --request a transaction list: TXLIST
+        --request a balance enquiry of one user: <user_name>
+        --request for a transaction of XXX number of ali coins  from user1 to user2: <user1_name> <user2_name> XXX
+        --request a statistic result of one user: <user_name> stats
+          (this function of statistic result is not implemented, the program can only recognize this command.)
+
+    serverM
+      the following commands are sent by serverM to serverA, serverB, or serverC
+        --request the whole transaction records of all users from one backend server: read_all
+        --request the whole transaction records of one user from one backend server: read;<user_name> 
+        --request writing a new transaction record such as "#### user1 user2 XXXX", where #### is the transaction numebr,
+          user1 is the sender, user2 is the receiver, and XXXX is the number of ali coins to be transfered. 
+          And the command is: write;#### <user1_name> <user2_name> XXXX
+
+      the following message are sent by serverM to clientA and clientB
+        --the whole transaction list with every records are separated by a semicolon such as: #### user1 user2 XXXX;#### user3 user4 XXXX
+        --cannot find the user whom the client request balance for in database: no_exist
+        --both receiver and sender cannot be found in database: not_there;sender_name;receiver_name
+        --one of sender and receiver cannot be found in datase : not_there;sender_name
+                                                             or: not_there;receiver_name   
+        --the sender does not have enough balance: not_enough;<current_banlace_of_sender>  
+        --the transaction is successfully completed: <balance_of _sender_after_transaction>
+    
+    serverA
+      the following message are sent by serverA to serverM
+        --the transaction records request by serverM prefixed by the number of all transaction records in database of serverA, the numebr of 
+          records and different records are separated by a semicolon such as : number_of_all_records;#### user1 user2 XXXX;#### user3 user4 XXXX
+        --the new transaction record is written into serverA's database successfully: write_complete
+    
+    serverB
+      the following message are sent by serverB to serverM
+        --the transaction records request by serverM prefixed by the number of all transaction records in database of serverB, the numebr of 
+          records and different records are separated by a semicolon such as : number_of_all_records;#### user1 user2 XXXX;#### user3 user4 XXXX
+        --the new transaction record is written into serverB's database successfully: write_complete
+
+    serverC
+      the following message are sent by serverC to serverM
+        --the transaction records request by serverM prefixed by the number of all transaction records in database of serverA, the numebr of 
+          records and different records are separated by a semicolon such as : number_of_all_records;#### user1 user2 XXXX;#### user3 user4 XXXX
+        --the new transaction record is written into serverC's database successfully: write_complete
+
+Part5 - Idiosyncrasy
+
+    This project is finished on virtualBox of Ubuntu 16.04 LTS and all tests are passed, and there is no idiosyncrasy.
+    Repeat: the function of getting users' statistic result(the extra points) is not implemented, the program can only recognize 
+    the corresponding command
+
+
+Part6 - Reused Code
+    1. Beej’s Guide to Network Programming
+      create TCP/UDP socket
+      bind socket
+      establish TCP connection
+      commnicate using these socket
+
+    2. Part of the function vector<string> split_c_string(char *input, const char *delimiter)
+       are from https://blog.csdn.net/Mary19920410/article/details/77372828
+       I reconstruct the original code and make it a function that can seperate string using 
+       any delimiter I want.
+
+
+
+
+
+
+
+
+
+
+
